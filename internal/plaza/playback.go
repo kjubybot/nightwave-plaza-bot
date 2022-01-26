@@ -13,24 +13,41 @@ func playback(ch <-chan struct{}, voice *discordgo.VoiceConnection) {
 	})
 	logContext.Info("starting playback")
 
-	encoder, err := dca.EncodeFile("http://radio.plaza.one/opus", dca.StdEncodeOptions)
-	if err != nil {
-		logContext.Error(err)
-		voice.Disconnect()
-		return
+	opts := dca.StdEncodeOptions
+	opts.Bitrate = 96
+	opts.RawOutput = true
+	opts.CompressionLevel = 5
+
+	for {
+		encoder, err := dca.EncodeFile("http://radio.plaza.one/opus", opts)
+		if err != nil {
+			logContext.Error(err)
+			voice.Disconnect()
+			return
+		}
+
+		voice.Speaking(true)
+
+		done := make(chan error)
+		dca.NewStream(encoder, voice, done)
+
+		select {
+		case <-ch:
+			encoder.Stop()
+			encoder.Cleanup()
+			voice.Speaking(false)
+			voice.Disconnect()
+			logContext.Info("playback stopped")
+			return
+		case err := <-done:
+			encoder.Stop()
+			encoder.Cleanup()
+			voice.Speaking(false)
+			if err == nil {
+				voice.Disconnect()
+				logContext.Info("playback stopped")
+				return
+			}
+		}
 	}
-	defer encoder.Cleanup()
-
-	voice.Speaking(true)
-
-	done := make(chan error)
-	dca.NewStream(encoder, voice, done)
-
-	<-ch
-	encoder.Stop()
-	<-done
-	logContext.Info("playback stopped")
-
-	voice.Speaking(false)
-	voice.Disconnect()
 }
