@@ -6,10 +6,10 @@ You can compile and run it using Go compiler or Docker. Either way `DISCORD_TOKE
 
 ```bash
 go build ./cmd/plaza
-export DISCORD_TOKEN
+export DISCORD_TOKEN=token
 ./plaza
 ```
-
+or
 ```bash
 docker build -t plaza .
 docker run -d -e DISCORD_TOKEN=token plaza
