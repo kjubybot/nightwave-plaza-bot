@@ -49,6 +49,8 @@ func handleMessage(s *discordgo.Session, msg *discordgo.MessageCreate) {
 				return
 			}
 		}
+
+		s.ChannelMessageSend(msg.ChannelID, "You are not in voice channel. Where to join??")
 	case "!stop":
 		logContext.Info("stop requested")
 

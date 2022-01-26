@@ -1,8 +1,6 @@
 package plaza
 
 import (
-	"net/http"
-
 	"github.com/bwmarrin/discordgo"
 	"github.com/jonas747/dca"
 	"github.com/sirupsen/logrus"
@@ -15,14 +13,7 @@ func playback(ch <-chan struct{}, voice *discordgo.VoiceConnection) {
 	})
 	logContext.Info("starting playback")
 
-	resp, err := http.Get("http://radio.plaza.one/opus")
-	if err != nil {
-		logContext.Error(err)
-		return
-	}
-	defer resp.Body.Close()
-
-	encoder, err := dca.EncodeMem(resp.Body, dca.StdEncodeOptions)
+	encoder, err := dca.EncodeFile("http://radio.plaza.one/opus", dca.StdEncodeOptions)
 	if err != nil {
 		logContext.Error(err)
 		voice.Disconnect()
